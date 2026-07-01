@@ -12,7 +12,7 @@ from kh_data_lineage import LineageTracker
 
 t = LineageTracker(username="jdoe", brand="still", file_hash="3f9a…c7",
                    what="initial processing", why="new manual onboarded",
-                   run_id="a0d1…", pdf_filename="manual.pdf")
+                   pdf_filename="manual.pdf")
 
 t.add_stage("chunking",
     inputs=["gs://bucket/registered/still/manual.pdf"],
