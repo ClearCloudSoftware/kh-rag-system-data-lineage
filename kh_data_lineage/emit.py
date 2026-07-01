@@ -34,7 +34,10 @@ class AsyncEmitter:
         self._pool = _get_pool(max_workers)
 
     def emit(self, run_event) -> None:
-        self._pool.submit(self._emit_with_retry, run_event)
+        try:
+            self._pool.submit(self._emit_with_retry, run_event)
+        except RuntimeError:  # pool already shut down at interpreter exit
+            log.warning("lineage emit skipped: pool already shut down")
 
     def _emit_with_retry(self, run_event) -> None:
         for attempt in range(1, self._retries + 1):
