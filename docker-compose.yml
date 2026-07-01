@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: marquez
+      POSTGRES_USER: marquez
+      POSTGRES_PASSWORD: marquez
+    volumes: ["marquez-db:/var/lib/postgresql/data"]
+  api:
+    image: marquezproject/marquez:0.50.0
+    depends_on: [db]
+    ports: ["5000:5000", "5001:5001"]
+    environment:
+      MARQUEZ_PORT: 5000
+      MARQUEZ_ADMIN_PORT: 5001
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: marquez
+      POSTGRES_USER: marquez
+      POSTGRES_PASSWORD: marquez
+    entrypoint: ["./entrypoint.sh"]
+  web:
+    image: marquezproject/marquez-web:0.50.0
+    depends_on: [api]
+    ports: ["3000:3000"]
+    environment:
+      MARQUEZ_HOST: api
+      MARQUEZ_PORT: 5000
+volumes:
+  marquez-db:
