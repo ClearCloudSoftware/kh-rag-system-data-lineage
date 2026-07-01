@@ -1,0 +1,16 @@
+[project]
+name = "kh-data-lineage"
+version = "0.1.0"
+description = "HeatLog — Foundry data-lineage SDK (OpenLineage + Marquez)"
+requires-python = ">=3.11"
+dependencies = ["openlineage-python>=1.0", "requests>=2.31", "attrs>=23.1"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["kh_data_lineage*"]
