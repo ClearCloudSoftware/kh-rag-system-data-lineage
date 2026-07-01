@@ -1,5 +1,6 @@
 # tests/test_tracker.py
 import pytest
+from pathlib import Path
 from kh_data_lineage.tracker import LineageTracker
 
 class Recorder:                     # stand-in emitter
@@ -40,3 +41,18 @@ def test_void_emits_abort():
     t = _tracker()
     t.void("junk run")
     assert t._emitter.events[0].eventType.value == "ABORT"
+
+def test_add_stage_accepts_path_inputs_without_raising():
+    t = _tracker()
+    t.add_stage("chunking", [Path("/gs/in.pdf")], [Path("/gs/out.json")])  # must NOT raise
+    assert len(t._emitter.events) == 1
+
+def test_void_swallows_malformed_run_id():
+    t = _tracker(run_id="abc")   # truthy but not a UUID -> build fails -> must be swallowed
+    t.void("junk")               # must NOT raise
+    assert t._emitter.events == []
+
+def test_void_run_requires_brand():
+    with pytest.raises(ValueError):
+        LineageTracker.void_run(run_id="11111111-1111-1111-1111-111111111111",
+                                reason="x", username="u", brand=None)

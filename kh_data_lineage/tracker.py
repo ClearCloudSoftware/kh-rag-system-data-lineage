@@ -1,8 +1,10 @@
 # kh_data_lineage/tracker.py
+import logging
 import uuid
 from kh_data_lineage.config import STAGES, MARQUEZ_URL
 from kh_data_lineage.emit import AsyncEmitter, _build_client
 from kh_data_lineage.events import build_stage_event, build_void_event
+log = logging.getLogger("kh_data_lineage")
 
 def _require(value: str, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
@@ -25,21 +27,36 @@ class LineageTracker:
             raise ValueError(f"unknown stage {stage_name!r}; expected one of {sorted(STAGES)}")
         if not inputs or not outputs:
             raise ValueError("inputs and outputs must be non-empty lists")
-        event = build_stage_event(
-            make=self.make, file_hash=self.file_hash, filename=self.filename,
-            what=self.what, why=self.why, username=self.username,
-            parent_run_id=self.run_id, stage=stage_name,
-            inputs=list(inputs), outputs=list(outputs), metadata=metadata,
-            stage_run_id=str(uuid.uuid4()))
+        try:
+            event = build_stage_event(
+                make=self.make, file_hash=self.file_hash, filename=self.filename,
+                what=self.what, why=self.why, username=self.username,
+                parent_run_id=self.run_id, stage=stage_name,
+                inputs=[str(p) for p in inputs], outputs=[str(p) for p in outputs],
+                metadata=metadata, stage_run_id=str(uuid.uuid4()))
+        except Exception as exc:
+            log.warning("lineage add_stage skipped: %s", exc)
+            return
         self._emitter.emit(event)
 
     def void(self, reason) -> None:
         _require(reason, "reason")
-        self._emitter.emit(build_void_event(
-            make=self.make, parent_run_id=self.run_id, reason=reason, voided_by=self.username))
+        try:
+            event = build_void_event(
+                make=self.make, parent_run_id=self.run_id, reason=reason, voided_by=self.username)
+        except Exception as exc:
+            log.warning("lineage void skipped: %s", exc)
+            return
+        self._emitter.emit(event)
 
     @classmethod
     def void_run(cls, run_id, reason, username, brand, *, marquez_url=MARQUEZ_URL) -> None:
         _require(reason, "reason")
-        AsyncEmitter(_build_client(marquez_url)).emit(build_void_event(
-            make=brand.strip().lower(), parent_run_id=run_id, reason=reason, voided_by=username))
+        _require(brand, "brand")
+        try:
+            event = build_void_event(
+                make=brand.strip().lower(), parent_run_id=run_id, reason=reason, voided_by=username)
+        except Exception as exc:
+            log.warning("lineage void_run skipped: %s", exc)
+            return
+        AsyncEmitter(_build_client(marquez_url)).emit(event)
