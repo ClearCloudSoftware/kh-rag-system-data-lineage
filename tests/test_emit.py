@@ -1,3 +1,5 @@
+import time
+
 from kh_data_lineage.emit import AsyncEmitter
 
 class FakeClient:
@@ -22,3 +24,11 @@ def test_emit_swallows_persistent_failure():
     c = FakeClient(fail_times=99)
     AsyncEmitter(c, retries=3)._emit_with_retry("evt")   # must NOT raise
     assert c.calls == 3
+
+def test_emit_submits_through_pool():
+    c = FakeClient()
+    AsyncEmitter(c).emit("evt")            # fire-and-forget via the shared pool
+    deadline = time.time() + 2
+    while c.calls == 0 and time.time() < deadline:
+        time.sleep(0.01)
+    assert c.calls == 1
