@@ -4,7 +4,7 @@ Foundry data-lineage SDK. Emits one OpenLineage event per Foundry stage to Marqu
 
 ```bash
 pip install kh-data-lineage
-export HEATLOG_MARQUEZ_URL=http://localhost:5000
+export HEATLOG_MARQUEZ_URL=http://localhost:9000   # Marquez runs in the Foundry infra stack (kh-rag-system-infra)
 ```
 
 ```python

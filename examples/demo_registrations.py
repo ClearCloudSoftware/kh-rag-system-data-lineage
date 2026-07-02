@@ -8,7 +8,7 @@ Every stage event carries a `heatlog` run facet whose two headline fields are:
 The ontological index is the stable identity that ties every stage of one
 artifact together; the who changes per stage (registrar, reviewer, ...).
 
-Run against the local Marquez:
+Run against a running Marquez — e.g. the Foundry infra stack (kh-rag-system-infra):
     .venv/bin/python examples/demo_registrations.py
 
 Override the backend with HEATLOG_MARQUEZ_URL. Then open http://localhost:9003
@@ -21,8 +21,7 @@ import os
 from kh_data_lineage import LineageTracker
 from kh_data_lineage.events import ontological_id
 
-# ponytail: local Marquez is remapped off :5000 (macOS ControlCenter owns 5000);
-# set HEATLOG_MARQUEZ_URL for a normal :5000 deployment.
+# Defaults to the Foundry infra stack's Marquez (:9000); override with HEATLOG_MARQUEZ_URL.
 URL = os.environ.get("HEATLOG_MARQUEZ_URL", "http://localhost:9000")
 BUCKET = "gs://foundry-docs"
 
