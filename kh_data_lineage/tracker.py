@@ -21,6 +21,7 @@ class LineageTracker:
         self.what, self.why, self.filename = what, why, pdf_filename
         self.run_id = run_id or str(uuid.uuid4())
         self._emitter = AsyncEmitter(_build_client(marquez_url))
+        log.debug("lineage tracker run=%s make=%s", self.run_id, self.make)
 
     def add_stage(self, stage_name, inputs, outputs, metadata=None) -> None:
         if stage_name not in STAGES:
@@ -38,6 +39,8 @@ class LineageTracker:
             log.warning("lineage add_stage skipped: %s", exc)
             return
         self._emitter.emit(event)
+        log.debug("lineage stage=%s run=%s in=%d out=%d",
+                  stage_name, self.run_id, len(inputs), len(outputs))
 
     def void(self, reason) -> None:
         _require(reason, "reason")
@@ -48,6 +51,7 @@ class LineageTracker:
             log.warning("lineage void skipped: %s", exc)
             return
         self._emitter.emit(event)
+        log.info("lineage void run=%s reason=%s", self.run_id, reason)
 
     @classmethod
     def void_run(cls, run_id, reason, username, brand, *, marquez_url=MARQUEZ_URL) -> None:
@@ -60,3 +64,4 @@ class LineageTracker:
             log.warning("lineage void_run skipped: %s", exc)
             return
         AsyncEmitter(_build_client(marquez_url)).emit(event)
+        log.info("lineage void_run run=%s reason=%s", run_id, reason)

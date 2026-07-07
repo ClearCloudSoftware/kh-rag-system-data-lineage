@@ -36,6 +36,7 @@ class AsyncEmitter:
     def emit(self, run_event) -> None:
         try:
             self._pool.submit(self._emit_with_retry, run_event)
+            log.debug("lineage emit queued")
         except RuntimeError:  # pool already shut down at interpreter exit
             log.warning("lineage emit skipped: pool already shut down")
 
@@ -43,6 +44,7 @@ class AsyncEmitter:
         for attempt in range(1, self._retries + 1):
             try:
                 self._client.emit(run_event)
+                log.debug("lineage emit ok (attempt %d/%d)", attempt, self._retries)
                 return
             except Exception as exc:
                 log.warning("lineage emit failed (%d/%d): %s", attempt, self._retries, exc)
