@@ -8,14 +8,14 @@ class Recorder:                     # stand-in emitter
     def emit(self, e): self.events.append(e)
 
 def _tracker(**kw):
-    base = dict(username="jdoe", brand="still", file_hash="h", what="w", why="y")
+    base = dict(username="jdoe", make="still", file_hash="h", what="w", why="y")
     t = LineageTracker(**{**base, **kw})
     t._emitter = Recorder()
     return t
 
 def test_missing_what_raises():
     with pytest.raises(ValueError):
-        LineageTracker(username="jdoe", brand="still", file_hash="h", what="", why="y")
+        LineageTracker(username="jdoe", make="still", file_hash="h", what="", why="y")
 
 def test_run_id_minted_when_absent():
     t = _tracker()
@@ -52,7 +52,7 @@ def test_void_swallows_malformed_run_id():
     t.void("junk")               # must NOT raise
     assert t._emitter.events == []
 
-def test_void_run_requires_brand():
+def test_void_run_requires_make():
     with pytest.raises(ValueError):
         LineageTracker.void_run(run_id="11111111-1111-1111-1111-111111111111",
-                                reason="x", username="u", brand=None)
+                                reason="x", username="u", make=None)

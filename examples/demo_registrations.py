@@ -12,7 +12,7 @@ Run against a running Marquez — e.g. the Foundry infra stack (kh-rag-system-in
     .venv/bin/python examples/demo_registrations.py
 
 Override the backend with HEATLOG_MARQUEZ_URL. Then open http://localhost:9003
-(the Marquez UI): the namespace is the brand, the job is the stage, and the
+(the Marquez UI): the namespace is the make, the job is the stage, and the
 who + ontological index sit on each run's `heatlog` facet.
 """
 import hashlib
@@ -26,12 +26,12 @@ URL = os.environ.get("HEATLOG_MARQUEZ_URL", "http://localhost:9000")
 BUCKET = "gs://foundry-docs"
 
 
-def file_hash(brand: str, filename: str) -> str:
+def file_hash(make: str, filename: str) -> str:
     """Stand-in for a real content hash — deterministic so reruns stay idempotent."""
-    return hashlib.sha256(f"{brand}/{filename}".encode()).hexdigest()[:12]
+    return hashlib.sha256(f"{make}/{filename}".encode()).hexdigest()[:12]
 
 
-# (who, brand, filename, why) — THE WHO leads each row.
+# (who, make, filename, why) — THE WHO leads each row.
 REGISTRATIONS = [
     ("jdoe",   "still",     "operator-manual.pdf",  "new manual onboarded"),
     ("asmith", "still",     "parts-catalogue.pdf",  "supplier catalogue added"),
@@ -39,19 +39,19 @@ REGISTRATIONS = [
 ]
 
 
-def register(who: str, brand: str, filename: str, why: str) -> None:
-    fh = file_hash(brand, filename)
+def register(who: str, make: str, filename: str, why: str) -> None:
+    fh = file_hash(make, filename)
     LineageTracker(
-        username=who, brand=brand, file_hash=fh,
+        username=who, make=make, file_hash=fh,
         what="initial registration", why=why,
         pdf_filename=filename, marquez_url=URL,
     ).add_stage(
         "registration",
-        inputs=[f"{BUCKET}/loaded/{brand}/{filename}"],
-        outputs=[f"{BUCKET}/registered/{brand}/{filename}"],
+        inputs=[f"{BUCKET}/loaded/{make}/{filename}"],
+        outputs=[f"{BUCKET}/registered/{make}/{filename}"],
         metadata={"pages": 42, "source": "supplier-portal"},
     )
-    print(f"  who={who:<9}  ontological_index={ontological_id(brand, fh, 'registration')}")
+    print(f"  who={who:<9}  ontological_index={ontological_id(make, fh, 'registration')}")
 
 
 def main() -> None:
@@ -63,7 +63,7 @@ def main() -> None:
     # the file_hash; only the stage (and the who) change.
     fh = file_hash("still", "operator-manual.pdf")
     LineageTracker(
-        username="breviewer", brand="still", file_hash=fh,
+        username="breviewer", make="still", file_hash=fh,
         what="editorial review", why="QA pass before publish",
         pdf_filename="operator-manual.pdf", marquez_url=URL,
     ).add_stage(
@@ -74,7 +74,7 @@ def main() -> None:
     )
     print(f"  who={'breviewer':<9}  ontological_index={ontological_id('still', fh, 'review')}   (same file, later stage)")
 
-    print("\nDone. Async emits flush on exit. View them at http://localhost:9003 (namespace = brand).")
+    print("\nDone. Async emits flush on exit. View them at http://localhost:9003 (namespace = make).")
 
 
 if __name__ == "__main__":

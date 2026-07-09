@@ -10,7 +10,7 @@ def _up():
 
 @pytest.mark.skipif(not _up(), reason="Marquez not running")
 def test_stage_lands_in_marquez():
-    t = LineageTracker(username="jdoe", brand="still", file_hash=uuid.uuid4().hex,
+    t = LineageTracker(username="jdoe", make="still", file_hash=uuid.uuid4().hex,
                        what="e2e", why="test", marquez_url=URL)
     t.add_stage("chunking", ["gs://b/in.pdf"], ["gs://b/out.json"], {"chunk_count": 1})
     import time; time.sleep(2)

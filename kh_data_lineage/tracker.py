@@ -12,12 +12,12 @@ def _require(value: str, field: str) -> str:
     return value
 
 class LineageTracker:
-    def __init__(self, username, brand, file_hash, what, why, *,
+    def __init__(self, username, make, file_hash, what, why, *,
                  run_id=None, pdf_filename=None, marquez_url=MARQUEZ_URL):
-        _require(username, "username"); _require(brand, "brand")
+        _require(username, "username"); _require(make, "make")
         _require(file_hash, "file_hash"); _require(what, "what"); _require(why, "why")
         self.username, self.file_hash = username, file_hash
-        self.make = brand.strip().lower()
+        self.make = make.strip().lower()
         self.what, self.why, self.filename = what, why, pdf_filename
         self.run_id = run_id or str(uuid.uuid4())
         self._emitter = AsyncEmitter(_build_client(marquez_url))
@@ -54,12 +54,12 @@ class LineageTracker:
         log.info("lineage void run=%s reason=%s", self.run_id, reason)
 
     @classmethod
-    def void_run(cls, run_id, reason, username, brand, *, marquez_url=MARQUEZ_URL) -> None:
+    def void_run(cls, run_id, reason, username, make, *, marquez_url=MARQUEZ_URL) -> None:
         _require(reason, "reason")
-        _require(brand, "brand")
+        _require(make, "make")
         try:
             event = build_void_event(
-                make=brand.strip().lower(), parent_run_id=run_id, reason=reason, voided_by=username)
+                make=make.strip().lower(), parent_run_id=run_id, reason=reason, voided_by=username)
         except Exception as exc:
             log.warning("lineage void_run skipped: %s", exc)
             return
